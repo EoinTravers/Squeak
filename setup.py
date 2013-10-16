@@ -9,21 +9,17 @@ setup(
     description=('Analyse mouse trajectory data.'),
     license='GPL',
     packages=['squeak'],
-    package_data={'doge': ['static/*.txt']},
-    scripts=[
-        'bin/doge'
-    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Operating System :: Unix',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 2',
-    ],
-    install_requires=[
-        'numpy >= 1.7.1',
-        'pandas >= 0.12.0',
-        'scipy >= 0.12.0',
-        'matplotlib >= 1.3.0'
-    ],
+    ]
+    #~ install_requires=[
+        #~ 'numpy >= 1.7.1',
+        #~ 'pandas >= 0.12.0',
+        #~ 'scipy >= 0.12.0',
+        #~ 'matplotlib >= 1.3.0'
+    #~ ],
 )
