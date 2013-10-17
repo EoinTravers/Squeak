@@ -2,7 +2,7 @@ from __future__ import division
 import os
 import pandas as pd
 import numpy as np
-from scipy import interpolate, interp
+from scipy import interpolate, interp, stats
 from math import sqrt
 import matplotlib.pyplot as plt
 
