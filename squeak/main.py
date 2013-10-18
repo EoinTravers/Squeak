@@ -21,13 +21,15 @@ def normalize_space(array, start=0, end=1):
 	old_delta = array[-1] - array[0] # Distance between old start and end values.
 	new_delta = end - start # Distance between new ones.
 	# Convert coordinates to float values
-	fl_array = []
-	for v in array:
-		fl_array.append(float(v))
-	array = np.array(fl_array)
+	array = array.astype('float')
 	# Finally, interpolate. We interpolate from (start minus delta) to (end plus delta)
 	# to handle cases where values go below the start, or above the end values.
-	normal = interp(array, [array[0] - old_delta, array[-1] + old_delta], [start - new_delta, end + new_delta])
+	#~ normal = interp(array, [array[0] - old_delta, array[-1] + old_delta], [start - new_delta, end + new_delta])
+	old_range = np.array([array[0] - old_delta, array[-1]+old_delta])
+	new_range = np.array([start - new_delta, end + new_delta])
+	#if max(array) > old_range[-1]:
+		#print 'Array: %s , old_range: %s' % (array, old_range)
+	normal = np.interp(array, old_range, new_range)
 	return normal
 	
 def remap_right(array):
@@ -188,7 +190,19 @@ def extend_raw_path(path, target_duration=3000, t=None, rate=10):
     path = list(path)
     for i in range( int((target_duration / rate) - len(path)) ):
         path.append(path[-1])
-    return np.array(path)  
+    return np.array(path)
+
+# Use this instead
+def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000):
+    # Interpolte to desired_interval
+    regular_timepoints = np.arange(0, timepoints[-1]+1, desired_interval)
+    regular_coordinates = interp(regular_timepoints, timepoints, coordinates)
+    # How long should this be so that all trials are the same duration?
+    required_length = int(max_duration / desired_interval)
+    # Generate enough of the last value to make up the difference
+    extra_values = np.array([regular_coordinates[-1]] * (required_length - len(regular_coordinates)))
+    return np.concatenate([regular_coordinates, extra_values])
+
 
 def get_init_time(y, y_limit, ascending = True):
 	"""Returns the time taken for the path to go above
