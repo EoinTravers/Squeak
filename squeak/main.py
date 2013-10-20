@@ -204,7 +204,7 @@ def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000
     return np.concatenate([regular_coordinates, extra_values])
 
 
-def get_init_time(y, y_limit, ascending = True):
+def get_init_time(t, y, y_limit, ascending = True):
 	"""Returns the time taken for the path to go above
 	y_limit (or below, if ascending is set to False)"""
 	j = 0
@@ -221,6 +221,24 @@ def get_init_time(y, y_limit, ascending = True):
 			this_y = y[j]
 	# Return time corresponding to this y
 	return(t[j])
+	
+def get_init_step(y, y_limit, ascending = True):
+	"""Returns the index of where where the path goes above
+	y_limit (or below, if ascending is set to False)"""
+	j = 0
+	this_y = y[j]
+	if ascending:
+		while this_y < y_limit:
+			# Loop until y is above the limit
+			this_y = y[j]
+			j += 1
+	else:
+		while this_y > y_limit:
+			# Loop until y is above the lim
+			this_y = y[j]
+			j += 1
+	# Return time corresponding to this y
+	return j
 
 def max_dev(x,y):
 	global n, p
