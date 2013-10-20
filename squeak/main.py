@@ -273,7 +273,32 @@ def max_dev(x,y):
 	md_sign = md_signs[deviations.index(max(deviations))]
 	#md_location = dev_locations[deviations.index(md)]
 	return md*md_sign #, md_location
+	
+def abs_max(array):
+    loc = abs(array).argmax()
+    return array[loc]
+    
+def abs_min(array):
+    loc = abs(array).argmin()
+    return array[loc]
+def min_distance(x, y, x_start=0, y_start=0, x_end=1, y_end=1):
+	ideal_x = np.arange(x_start, x_end)
 
+def pythagoras(o, a):
+	pass
+def max_deviation(x, y):
+	min_deviations = []
+	ideal_x = np.arange(x_start, x_end+.01, .1)
+	ideal_y = np.arange(x_start, x_end+01, .1)
+	for i in range(len(x)):
+		this_x = x[i]
+		this_y = y[i]
+		distances = []
+		for j in range(len(ideal_x)):
+			ref_x = ideal_x[j]
+			ref_y = ideal_y[j]
+			
+	
 def auc(x, y):
 	areas = []
 	j = len(x) - 1
