@@ -21,13 +21,15 @@ def normalize_space(array, start=0, end=1):
 	old_delta = array[-1] - array[0] # Distance between old start and end values.
 	new_delta = end - start # Distance between new ones.
 	# Convert coordinates to float values
-	fl_array = []
-	for v in array:
-		fl_array.append(float(v))
-	array = np.array(fl_array)
+	array = array.astype('float')
 	# Finally, interpolate. We interpolate from (start minus delta) to (end plus delta)
 	# to handle cases where values go below the start, or above the end values.
-	normal = interp(array, [array[0] - old_delta, array[-1] + old_delta], [start - new_delta, end + new_delta])
+	#~ normal = interp(array, [array[0] - old_delta, array[-1] + old_delta], [start - new_delta, end + new_delta])
+	old_range = np.array([array[0] - old_delta, array[-1]+old_delta])
+	new_range = np.array([start - new_delta, end + new_delta])
+	#if max(array) > old_range[-1]:
+		#print 'Array: %s , old_range: %s' % (array, old_range)
+	normal = np.interp(array, old_range, new_range)
 	return normal
 	
 def remap_right(array):
@@ -188,9 +190,21 @@ def extend_raw_path(path, target_duration=3000, t=None, rate=10):
     path = list(path)
     for i in range( int((target_duration / rate) - len(path)) ):
         path.append(path[-1])
-    return np.array(path)  
+    return np.array(path)
 
-def get_init_time(y, y_limit, ascending = True):
+# Use this instead
+def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000):
+    # Interpolte to desired_interval
+    regular_timepoints = np.arange(0, timepoints[-1]+1, desired_interval)
+    regular_coordinates = interp(regular_timepoints, timepoints, coordinates)
+    # How long should this be so that all trials are the same duration?
+    required_length = int(max_duration / desired_interval)
+    # Generate enough of the last value to make up the difference
+    extra_values = np.array([regular_coordinates[-1]] * (required_length - len(regular_coordinates)))
+    return np.concatenate([regular_coordinates, extra_values])
+
+
+def get_init_time(t, y, y_limit, ascending = True):
 	"""Returns the time taken for the path to go above
 	y_limit (or below, if ascending is set to False)"""
 	j = 0
@@ -207,6 +221,24 @@ def get_init_time(y, y_limit, ascending = True):
 			this_y = y[j]
 	# Return time corresponding to this y
 	return(t[j])
+	
+def get_init_step(y, y_limit, ascending = True):
+	"""Returns the index of where where the path goes above
+	y_limit (or below, if ascending is set to False)"""
+	j = 0
+	this_y = y[j]
+	if ascending:
+		while this_y < y_limit:
+			# Loop until y is above the limit
+			this_y = y[j]
+			j += 1
+	else:
+		while this_y > y_limit:
+			# Loop until y is above the lim
+			this_y = y[j]
+			j += 1
+	# Return time corresponding to this y
+	return j
 
 def max_dev(x,y):
 	global n, p
@@ -241,7 +273,32 @@ def max_dev(x,y):
 	md_sign = md_signs[deviations.index(max(deviations))]
 	#md_location = dev_locations[deviations.index(md)]
 	return md*md_sign #, md_location
+	
+def abs_max(array):
+    loc = abs(array).argmax()
+    return array[loc]
+    
+def abs_min(array):
+    loc = abs(array).argmin()
+    return array[loc]
+def min_distance(x, y, x_start=0, y_start=0, x_end=1, y_end=1):
+	ideal_x = np.arange(x_start, x_end)
 
+def pythagoras(o, a):
+	pass
+def max_deviation(x, y):
+	min_deviations = []
+	ideal_x = np.arange(x_start, x_end+.01, .1)
+	ideal_y = np.arange(x_start, x_end+01, .1)
+	for i in range(len(x)):
+		this_x = x[i]
+		this_y = y[i]
+		distances = []
+		for j in range(len(ideal_x)):
+			ref_x = ideal_x[j]
+			ref_y = ideal_y[j]
+			
+	
 def auc(x, y):
 	areas = []
 	j = len(x) - 1
