@@ -75,7 +75,7 @@ def average_path(x, y, full_output=False, length=101):
 		my.append(np.mean(this_y))
 	if full_output:
 		return fullx, fully
-	return mx, my
+	return np.array(mx), np.array(my)
 	
 
 def plot_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', length=101, legend=True, title=None):
@@ -176,7 +176,7 @@ def rel_distance(x_path, y_path, full_output = False):
 	if full_output:
 		return r_d, d_1, d_2
 	else:
-		return(r_d)
+		return np.array(r_d)
 
 def avg_incr(series):
     d = []
@@ -299,7 +299,7 @@ def auc(x, y):
 	for i in range(len(x)):
 		x1y2 = y[i]*x[j]
 		x2y1 = x[i] * y[j]
-		area = x1y2 - x2y1
+		area = x2y1 - x1y2
 		areas.append(area)
 		j = i
 	return float(sum(areas))/2
