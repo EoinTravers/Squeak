@@ -345,8 +345,8 @@ def pythag(o, a):
 	return np.sqrt( o**2 + a**2)
 
 def velocity(x, y):
-	vx = ediff1d(x)
-	vy = ediff1d(y)
+	vx = np.ediff1d(x)
+	vy = np.ediff1d(y)
 	vel = np.sqrt( vx**2 + vy **2 ) # Pythagoras
 	return vel
     
