@@ -5,6 +5,7 @@ import numpy as np
 from scipy import interpolate, interp, stats
 from math import sqrt
 import matplotlib.pyplot as plt
+import math
 
 # Normalizaton
 def even_time_steps(x, y, t, length = 101):
@@ -234,64 +235,84 @@ def get_init_step(y, y_threshold = .01, ascending = True):
 	step = np.argmax(started)
 	return step
 
-def max_dev(x,y):
-	global n, p
-	# # This is treating positive and negative deviations as the same.
-	# # Change this!
-	startx, starty, endx, endy = 0,-1,-1,0
-	ideal_x = np.arange(startx, endx, (endx-startx)*.1)
-	ideal_y = np.arange(starty, endy, (endy-starty)*.1)
-	ideal_x = np.append(ideal_x, endx)
-	ideal_y = np.append(ideal_y, endy)
-	deviations, md_signs, dev_locations = [], [], []
-	for i in range(len(x)):
-		distances = []
-		dist_locations = []
-		signs = []
-		this_x = x[i]
-		this_y = y[i]
-		for j in range(11):
-			refx = ideal_x[j]
-			refy = ideal_y[j]
-			dist = sqrt( (refx-this_x)**2 + (refy-this_y)**2)
-			distances.append(dist)
-			signs.append(np.sign(this_x-refx))
-			dist_locations.append([refx, this_x])
-			#print dist, dist_locations[distances.index(min(distances))
-		#print len(distances), len(dist_locations)
-		deviations.append(min(distances))
-		md_signs.append(signs[distances.index(min(distances))])
-		min_dist_loc = dist_locations[distances.index(min(distances))]
-		dev_locations.append(min_dist_loc)
-	md = max(deviations)
-	md_sign = md_signs[deviations.index(max(deviations))]
-	#md_location = dev_locations[deviations.index(md)]
-	return md*md_sign #, md_location
+#~ def max_dev(x,y):
+	#~ global n, p
+	#~ # # This is treating positive and negative deviations as the same.
+	#~ # # Change this!
+	#~ startx, starty, endx, endy = 0,1,1,0
+	#~ ideal_x = np.arange(startx, endx, (endx-startx)*.1)
+	#~ ideal_y = np.arange(starty, endy, (endy-starty)*.1)
+	#~ ideal_x = np.append(ideal_x, endx)
+	#~ ideal_y = np.append(ideal_y, endy)
+	#~ deviations, md_signs, dev_locations = [], [], []
+	#~ for i in range(len(x)):
+		#~ distances = []
+		#~ dist_locations = []
+		#~ signs = []
+		#~ this_x = x[i]
+		#~ this_y = y[i]
+		#~ for j in range(11):
+			#~ refx = ideal_x[j]
+			#~ refy = ideal_y[j]
+			#~ dist = sqrt( (refx-this_x)**2 + (refy-this_y)**2)
+			#~ distances.append(dist)
+			#~ signs.append(np.sign(this_x-refx))
+			#~ dist_locations.append([refx, this_x])
+			#~ #print dist, dist_locations[distances.index(min(distances))
+		#~ #print len(distances), len(dist_locations)
+		#~ deviations.append(min(distances))
+		#~ md_signs.append(signs[distances.index(min(distances))])
+		#~ min_dist_loc = dist_locations[distances.index(min(distances))]
+		#~ dev_locations.append(min_dist_loc)
+	#~ md = max(deviations)
+	#~ md_sign = md_signs[deviations.index(max(deviations))]
+	#~ #md_location = dev_locations[deviations.index(md)]
+	#~ return md*md_sign #, md_location
+	#~ 
+#~ def abs_max(array):
+    #~ loc = abs(array).argmax()
+    #~ return array[loc]
+    #~ 
+#~ def abs_min(array):
+    #~ loc = abs(array).argmin()
+    #~ return array[loc]
+#~ def min_distance(x, y, x_start=0, y_start=0, x_end=1, y_end=1):
+	#~ ideal_x = np.arange(x_start, x_end)
+	#~ 
+#~ def md2(x, y):
+	#~ local_minimums = []
+	#~ 
+#~ 
+#~ def pythagoras(x1, y1, x2, y2):
+	#~ dist = sqrt( (x1-x2)**2 + (y1-y2)**2)
+	#~ return dist
 	
-def abs_max(array):
-    loc = abs(array).argmax()
-    return array[loc]
-    
-def abs_min(array):
-    loc = abs(array).argmin()
-    return array[loc]
-def min_distance(x, y, x_start=0, y_start=0, x_end=1, y_end=1):
-	ideal_x = np.arange(x_start, x_end)
-
-def pythagoras(o, a):
-	pass
 def max_deviation(x, y):
-	min_deviations = []
-	ideal_x = np.arange(x_start, x_end+.01, .1)
-	ideal_y = np.arange(x_start, x_end+01, .1)
-	for i in range(len(x)):
-		this_x = x[i]
-		this_y = y[i]
-		distances = []
-		for j in range(len(ideal_x)):
-			ref_x = ideal_x[j]
-			ref_y = ideal_y[j]
-			
+	rx, ry = [], []
+	# Turn the path on its side.
+	for localx, localy in zip(x, y):
+		rot = rotate(localx, localy, math.radians(45))
+		rx.append(rot[0])
+		ry.append(rot[1])
+	max_positive = abs(min(rx))
+	max_negative = abs(max(rx))
+	#print max_positive, max_negative
+	if max_positive > max_negative:
+		# The return the positive MD
+		return max_positive
+	else:
+		# Return the negative (rare)
+		return -1*max_negative
+
+
+def rotate(x, y, rad):
+	"""Rotate counter-clockwise by rad radians.
+	"""
+	s, c = [f(rad) for f in (math.sin, math.cos)]
+	x, y = (c*x - s*y, s*x + c*y)
+	return x,y
+
+        			
 	
 def auc(x, y):
 	areas = []
@@ -336,6 +357,15 @@ def bimodality_coef(samp):
 	#b = ( g**2 + 1) / ( k + ( (3 * (n-1)**2 ) / ( (n-2)*(n-3) ) ) )
 	b=(m3**2+1) / (m4 + 3 * ( (n-1)**2 / ((n-2)*(n-3)) ))
 	return b
+
+# Inference
+def chisquare_boolean(array1, array2):
+    observed_values = np.array([sum(array1), sum(array2)])
+    total_len = np.array([len(array1), len(array2)])
+    expected_ratio = sum(observed_values) / sum(total_len)
+    expected_values = total_len * expected_ratio
+    chisq, p = stats.chisquare(observed_values, f_exp = expected_values)
+    return chisq, p
 
 
 # Make a GIF 
