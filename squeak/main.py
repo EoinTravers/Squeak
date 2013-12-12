@@ -9,16 +9,20 @@ import math
 
 # Normalizaton
 def even_time_steps(x, y, t, length = 101):
-	"""Takes lists of x and y co-ordinates, and corresponding timestamps t,
-	and returns these lists interpolated into 101 even time steps"""
+	"""Interpolates x/y coordinates and timestamps to 101 even time steps
+	
+	Input can be lists, or numpy arrays.
+	Returns normalized x coordinates, y coordinates, and corresponding normalized timestamps.
+	"""
 	nt = np.arange(min(t), max(t), (float(max(t)-min(t))/length))
 	nx = interp(nt, t, x)
 	ny = interp(nt, t, y)
 	return nx, ny, nt
 
 def normalize_space(array, start=0, end=1):
-	"""Interpolates array of 1-d coordinates to a given start and end value.
-	Useful for comparison: all trajectories can be made start at (0,0), and end at (1,1)"""
+	"""Interpolates array of 1-d coordinates to given start and end value.
+	
+	TODO: Might not work on decreasing arrays. Test ti"""
 	old_delta = array[-1] - array[0] # Distance between old start and end values.
 	new_delta = end - start # Distance between new ones.
 	# Convert coordinates to float values
@@ -34,8 +38,15 @@ def normalize_space(array, start=0, end=1):
 	return normal
 	
 def remap_right(array):
-	"""If the coordinates go leftward (end with a lower value than they 
-	started with), this function will return their inverse."""
+	"""Flips decreasing coordinates horizontally on their origin
+	
+	>>> remap_right([10,11,12])
+	array([10, 11, 12])
+
+	>>> remap_right([10, 9, 8])
+	array([10, 11, 12])
+	"""
+	array = np.array(array)
 	if array[-1] - array[0] < 0:
 		array_start = array[0]
 		return ((array-array_start)*-1)+array_start
@@ -43,8 +54,9 @@ def remap_right(array):
 		return array
 	
 def list_from_string(string_list):
-	"""Converts string represation of list '[1,2,3]' in
-	an actual pythonic list [1,2,3]"""
+	"""Converts string represation of list '[1,2,3]' to an actual pythonic list [1,2,3]
+	
+	A rough and ready function"""
 	try:
 		first = string_list.strip('[]')
 		then = first.split(',')
@@ -57,13 +69,26 @@ def list_from_string(string_list):
 	
 # # # Functions to apply to a set of trajectories at a time # # #
 
-def average_path(x, y, full_output=False, length=101):
-	"""Takes Pandas data columns containing lists of coordinates (paths)
-	as inputs, and returns averaged paths for each one.
-	Currently only works for 1- or 2-dimensional inputs"""
+def average_path(x, y, full_output=False):#, length=101):
+	"""Averages Pandas data columns of x and y trajectories into a single mean xy path.
+	
+	Finds length of first row, and then averages the i-th entry of the x and y columns
+	for i in range(0,length).
+	
+	Parameters
+	----------
+	x, y : Pandas DataFrame columns
+	full_output : bool, optional
+		Return all values, not just the average.
+		Used by compare_means_1d()
+	TODO: Allow other datatypes as input.
+	TODO: Create the option of returning variance as well as mean?
+		See http://stanford.edu/~mwaskom/software/seaborn/timeseries_plots.html
+	"""
 	# Can this be done more efficiently with .apply()?
 	mx, my = [], []
 	fullx, fully = [], []
+	length = len(x.iloc[0])
 	for i in range(length):
 		this_x, this_y = [], []
 		for p in range(len(x)):
@@ -78,37 +103,32 @@ def average_path(x, y, full_output=False, length=101):
 		return fullx, fully
 	return np.array(mx), np.array(my)
 	
-
-def plot_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', length=101, legend=True, title=None):
-	"""Plots change in x axis over time.
-	Assumes that dataset contains values 'x', comprising mouse
-	paths standarised into 101 time steps.
-	Takes a Pandas DataFrame, divides it by the grouping variable 'groupby' 
-	(a string), and plots the average of all paths in 'condition_a' in blue,
-	and the average from 'condition_b' in red.
-	Includes a legend by default, and a title if given."""
-	a_x, a_y = average_path(dataset[y][dataset[groupby] == condition_a], dataset[y][dataset[groupby] == condition_a], length=length)
-	b_x, b_y = average_path(dataset[y][dataset[groupby] == condition_b], dataset[y][dataset[groupby] == condition_b], length=length)
-	l1 = plt.plot(a_y, color = 'r', label = condition_a)
-	l2 = plt.plot(b_y, 'b', label=condition_b)
-	if legend:
-		plt.legend()
-	plt.title(y)
-	return a_y, b_y
-    
-    
-def compare_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', test = 't'):
-	"""Plots change in x axis over time.
-	Assumes that dataset contains values 'x', comprising mouse
-	paths standarised into 101 time steps.
-	Takes a Pandas DataFrame, divides it by the grouping variable 'groupby' 
-	(a string), and plots the average of all paths in 'condition_a' in blue,
-	and the average from 'condition_b' in red.
-	Includes a legend by default, and a title if given."""
+def compare_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', test = 't', length=101):
+	"""Possibly depreciated: Compares average coordinates from two conditions using a series of t or Mann-Whitney tests.
+	
+	Parameters
+	----------
+	dataset: Pandas DataFrame
+	groupby: string
+		The column in which the groups are defined
+	condition_a, condition_b: string
+		The labels of each group (in column groupby)
+	y: string, optional
+		The column name of the coordinates to be compared.
+		Default 'x'
+	test: string, optional
+		Statistical test to use.
+		Default: 't' (independant samples t test)
+		Alternate: 'u' (Non-parametric Mann-Whitney test)
+		
+	Returns
+	-----------
+	t101 : t (or U) values for each point in the trajectory
+	p101 : Associated p values"""
 	a_x, a_y = average_path(dataset[y][dataset[groupby] == condition_a], dataset[y] [dataset[groupby] == condition_a], full_output=True)
 	b_x, b_y = average_path(dataset[y][dataset[groupby] == condition_b], dataset[y][dataset[groupby] == condition_b], full_output=True)
 	t101, p101 = [], []
-	for i in range(101):
+	for i in range(length):
 		if test == 't':# t-test
 			t, p = stats.ttest_ind(a_y[i], b_y[i])
 		elif test == 'u':# Mann-Whitney
@@ -116,6 +136,37 @@ def compare_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', test =
 		t101.append(t)
 		p101.append(p)
 	return t101, p101
+	
+# Depreciated Plotting functions
+def plot_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', legend=True, title=None):
+	"""Depreciated: Convenience function for plotting two 1D lines, representing changes on x axis
+	
+		Parameters
+	----------
+	dataset: Pandas DataFrame
+	groupby: string
+		The column in which the groups are defined
+	condition_a, condition_b: string
+		The labels of each group (in column groupby)
+	y: string, optional
+		The column name of the coordinates to be compared.
+		Default 'x'
+	legend: bool, optional
+		Include legend on plot
+	title: string, optional
+
+	Takes a Pandas DataFrame, divides it by the grouping variable 'groupby' 
+	(a string), and plots the average of all paths in 'condition_a' in blue,
+	and the average from 'condition_b' in red.
+	Includes a legend by default, and a title if given."""
+	a_x, a_y = average_path(dataset[y][dataset[groupby] == condition_a], dataset[y][dataset[groupby] == condition_a])
+	b_x, b_y = average_path(dataset[y][dataset[groupby] == condition_b], dataset[y][dataset[groupby] == condition_b])
+	l1 = plt.plot(a_y, color = 'r', label = condition_a)
+	l2 = plt.plot(b_y, 'b', label=condition_b)
+	if legend:
+		plt.legend()
+	plt.title(y)
+	return None
 
 def plot_means_2d(dataset, groupby, condition_a, condition_b, x='x', y='y', length=101, legend=True, title='Average paths'):
     	"""Plots x and y coordinates.
