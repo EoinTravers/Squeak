@@ -169,7 +169,7 @@ def plot_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', legend=Tr
 	return None
 
 def plot_means_2d(dataset, groupby, condition_a, condition_b, x='x', y='y', length=101, legend=True, title='Average paths'):
-    	"""Plots x and y coordinates.
+    """Plots x and y coordinates.
 	Assumes that dataset contains values 'x' and 'y', comprising mouse
 	paths standarised into 101 time steps.
 	Takes a Pandas DataFrame, divides it by the grouping variable 'groupby' 
@@ -229,23 +229,36 @@ def rel_distance(x_path, y_path, full_output = False):
 		return r_d, d_1, d_2
 	else:
 		return np.array(r_d)
-
-def avg_incr(series):
-    d = []
-    for i in range(len(series)-1):
-        d.append(series[i+1] - series[i])
-    return float(sum(d)) / len(d)
     
-def extend_raw_path(path, target_duration=3000, t=None, rate=10):
-    if type(t) == list:
-        smart_t = avg_incr(t)
-    path = list(path)
-    for i in range( int((target_duration / rate) - len(path)) ):
-        path.append(path[-1])
-    return np.array(path)
+#~ def extend_raw_path(path, target_duration=3000, t=None, rate=10):
+    #~ if type(t) == list:
+        #~ smart_t = np.mean(np.ediff1d(t))
+    #~ path = list(path)
+    #~ for i in range( int((target_duration / rate) - len(path)) ):
+        #~ path.append(path[-1])
+    #~ return np.array(path)
 
 # Use this instead
 def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000):
+	"""Extend coordinates to desired duration by repeating the final value
+	
+	Parameters
+	----------
+	coordinates : array-like
+		1D x or y coordinates to extend
+	timepoitns : array-like
+		timestamps corresponding to each coordinate
+	desired_interval : int, optional
+		frequency of timepoints in output, in ms
+		Default 10
+	max_duration : int, optional
+		Length to extend to.
+		Note: Currently crashes if max(timepoints) > max_duration
+		Default 3000
+		
+	Returns
+	---------
+	uniform_time_coordinates : coordinates extended up to max_duration"""
     # Interpolte to desired_interval
     regular_timepoints = np.arange(0, timepoints[-1]+1, desired_interval)
     regular_coordinates = interp(regular_timepoints, timepoints, coordinates)
