@@ -9,15 +9,28 @@ import math
 
 # # # Normalizaton
 def even_time_steps(x, y, t, length = 101):
-	"""Interpolates x/y coordinates and timestamps to 101 even time steps
+	"""Interpolates x/y coordinates and t to 101 even time steps, returns x and y TimeSeries
 	
-	Input can be lists, or numpy arrays.
-	Returns normalized x coordinates, y coordinates, and corresponding normalized timestamps.
+	Parameters
+	----------
+	x, y : array-like
+		Coordinates to be interpolated
+	t : array-like
+		Associated time stamps
+	length : int, optional
+		Number of time steps to interpolate to. Default 101
+		
+	Returns
+	---------
+	TimeSeries(nx, nt) : Pandas.TimeSeries object
+		x coordinates intepolated to 101 even time steps
+	TimeSeries(ny, nt) : Pandas.TimeSeries object
+		y coordinates intepolated to 101 even time steps
 	"""
 	nt = np.arange(min(t), max(t), (float(max(t)-min(t))/length))
 	nx = interp(nt, t, x)
 	ny = interp(nt, t, y)
-	return nx, ny, nt
+	return pd.TimeSeries(nx, nt), pd.TimeSeries(ny, nt)
 
 def normalize_space(array, start=0, end=1):
 	"""Interpolates array of 1-d coordinates to given start and end value.
@@ -53,7 +66,7 @@ def remap_right(array):
 	else:
 		return array
 
-def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000):
+def uniform_time(coordinates, timepoints, desired_interval=20, max_duration=3000):
 	"""Extend coordinates to desired duration by repeating the final value
 	
 	Parameters
@@ -74,13 +87,18 @@ def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000
 	---------
 	uniform_time_coordinates : coordinates extended up to max_duration"""
 	# Interpolte to desired_interval
-	regular_timepoints = np.arange(0, timepoints[-1]+1, desired_interval)
+	regular_timepoints = np.arange(0, timepoints[-1]+.1, desired_interval)
 	regular_coordinates = interp(regular_timepoints, timepoints, coordinates)
 	# How long should this be so that all trials are the same duration?
 	required_length = int(max_duration / desired_interval)
 	# Generate enough of the last value to make up the difference
-	extra_values = np.array([regular_coordinates[-1]] * (required_length - len(regular_coordinates)))
-	return np.concatenate([regular_coordinates, extra_values])
+	extra_values = np.array([regular_coordinates[-1]] * (required_length - len(regular_coordinates)+1))
+	
+	extended_coordinates = np.concatenate([regular_coordinates, extra_values])
+	extended_timepoints = np.arange(0, max_duration+.1, desired_interval)
+	print len(extended_coordinates), len(extended_timepoints)
+	# Return as a time series
+	return pd.TimeSeries(extended_coordinates, extended_timepoints)
 
 def list_from_string(string_list):
 	"""Converts string represation of list '[1,2,3]' to an actual pythonic list [1,2,3]
