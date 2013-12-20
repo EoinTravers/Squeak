@@ -73,14 +73,14 @@ def uniform_time(coordinates, timepoints, desired_interval=10, max_duration=3000
 	Returns
 	---------
 	uniform_time_coordinates : coordinates extended up to max_duration"""
-    # Interpolte to desired_interval
-    regular_timepoints = np.arange(0, timepoints[-1]+1, desired_interval)
-    regular_coordinates = interp(regular_timepoints, timepoints, coordinates)
-    # How long should this be so that all trials are the same duration?
-    required_length = int(max_duration / desired_interval)
-    # Generate enough of the last value to make up the difference
-    extra_values = np.array([regular_coordinates[-1]] * (required_length - len(regular_coordinates)))
-    return np.concatenate([regular_coordinates, extra_values])
+	# Interpolte to desired_interval
+	regular_timepoints = np.arange(0, timepoints[-1]+1, desired_interval)
+	regular_coordinates = interp(regular_timepoints, timepoints, coordinates)
+	# How long should this be so that all trials are the same duration?
+	required_length = int(max_duration / desired_interval)
+	# Generate enough of the last value to make up the difference
+	extra_values = np.array([regular_coordinates[-1]] * (required_length - len(regular_coordinates)))
+	return np.concatenate([regular_coordinates, extra_values])
 
 def list_from_string(string_list):
 	"""Converts string represation of list '[1,2,3]' to an actual pythonic list [1,2,3]
@@ -106,19 +106,19 @@ def rel_distance(x_path, y_path, full_output = False):
 	# TODO make these reference targets flexible as input
 	rx1, ry1 = x_path[0], x_path[-1]
 	rx2, ry2 = -1* rx1, ry1
-    	r_d, d_1, d_2 = [], [], []
-    	for i in range(len(x_path)):
-			x = x_path[i]
-			y = y_path[i]
-			# Distance from each
-			d1 = sqrt( (x-rx1)**2 + (y-ry1)**2 )
-			d2 = sqrt( (x-rx2)**2 + (y-ry2)**2 )
-			# Relative distance
-			rd = (d1 / (d1 + d2) )
-			r_d.append(rd)
-			if full_output:
-				d_1.append(d1)
-				d_2.append(d2)
+	r_d, d_1, d_2 = [], [], []
+	for i in range(len(x_path)):
+		x = x_path[i]
+		y = y_path[i]
+		# Distance from each
+		d1 = sqrt( (x-rx1)**2 + (y-ry1)**2 )
+		d2 = sqrt( (x-rx2)**2 + (y-ry2)**2 )
+		# Relative distance
+		rd = (d1 / (d1 + d2) )
+		r_d.append(rd)
+		if full_output:
+			d_1.append(d1)
+			d_2.append(d2)
 	if full_output:
 		return r_d, d_1, d_2
 	else:
@@ -322,12 +322,12 @@ def chisquare_boolean(array1, array2):
 	p : float
 		Associated p-value
 	"""
-    observed_values = np.array([sum(array1), sum(array2)])
-    total_len = np.array([len(array1), len(array2)])
-    expected_ratio = sum(observed_values) / sum(total_len)
-    expected_values = total_len * expected_ratio
-    chisq, p = stats.chisquare(observed_values, f_exp = expected_values)
-    return chisq, p
+	observed_values = np.array([sum(array1), sum(array2)])
+	total_len = np.array([len(array1), len(array2)])
+	expected_ratio = sum(observed_values) / sum(total_len)
+	expected_values = total_len * expected_ratio
+	chisq, p = stats.chisquare(observed_values, f_exp = expected_values)
+	return chisq, p
 
 # # # Functions to apply to a set of trajectories at a time # # #
 # # Most of this is best done using Pandas' built in methods.
@@ -431,7 +431,7 @@ def plot_means_1d(dataset, groupby, condition_a, condition_b, y = 'x', legend=Tr
 	return None
 
 def plot_means_2d(dataset, groupby, condition_a, condition_b, x='x', y='y', legend=True, title=None):
-    """Depreciated: Convenience function for plotting average 2D mouse paths
+	"""Depreciated: Convenience function for plotting average 2D mouse paths
 	
 	Parameters
 	----------
@@ -462,7 +462,7 @@ def plot_means_2d(dataset, groupby, condition_a, condition_b, x='x', y='y', lege
 	return a_x, a_y, b_x, b_y
 
 def plot_all(dataset, groupby, condition_a, condition_b, x='x', y='y', legend=True, title=None):
-    """Depreciated: Convenience function plotting every trajectory in 2 conditions
+	"""Depreciated: Convenience function plotting every trajectory in 2 conditions
 	
 	Parameters
 	----------
@@ -530,49 +530,49 @@ def make_gif(dataset, groupby, condition_a, condition_b, save_to, frames=101, x=
 	From the command line (Linux, but should also work in Windows/OSX)
 	``convert -delay 10 -loop 1 path/to/images/*.png path/to/save/Output.gif``
 	"""
-for i in range(frames):
-    plt.clf()
-    for j in range(len(data)):
-        if data.code.iloc[j] == 'lure':
-            style = 'r.'
-        elif data.code.iloc[j] == 'control':
-            style = 'b.'
-        else:
-            style = None
-        if style:
-            x = data.fx.iloc[j]
-            y = data.fy.iloc[j]
-            if len(x) > i:
-                plt.plot(x[i], y[i], style)
-            else:
-                plt.plot(x[-1], y[-1], style)
-    plt.xlim((-1.2, 1.2))
-    plt.ylim((-.2, 1.2))
-    plt.title('%ims' % (i*10))
-    plt.savefig(os.path.join(path, 'Step_%i.png' % (1000+i)))
-    
+	for i in range(frames):
+	  plt.clf()
+	  for j in range(len(data)):
+	  	  if data.code.iloc[j] == 'lure':
+	  	  	  style = 'r.'
+	  	  elif data.code.iloc[j] == 'control':
+	  	  	  style = 'b.'
+	  	  else:
+	  	  	  style = None
+	  	  if style:
+	  	  	  x = data.fx.iloc[j]
+	  	  	  y = data.fy.iloc[j]
+	  	  	  if len(x) > i:
+	  	  	  	  plt.plot(x[i], y[i], style)
+	  	  	  else:
+	  	  	  	  plt.plot(x[-1], y[-1], style)
+	  plt.xlim((-1.2, 1.2))
+	  plt.ylim((-.2, 1.2))
+	  plt.title('%ims' % (i*10))
+	  plt.savefig(os.path.join(path, 'Step_%i.png' % (1000+i)))
+	  
 # Make a GIF (
 #~ path = '/path/to/save/images/'
 #~ for i in range(301):
-    #~ plt.clf()
-    #~ for j in range(len(data)):
-        #~ if data.code.iloc[j] == 'lure':
-            #~ style = 'r.'
-        #~ elif data.code.iloc[j] == 'control':
-            #~ style = 'b.'
-        #~ else:
-            #~ style = None
-        #~ if style:
-            #~ x = data.fx.iloc[j]
-            #~ y = data.fy.iloc[j]
-            #~ if len(x) > i:
-                #~ plt.plot(x[i], y[i], style)
-            #~ else:
-                #~ plt.plot(x[-1], y[-1], style)
-    #~ plt.xlim((-1.2, 1.2))
-    #~ plt.ylim((-.2, 1.2))
-    #~ plt.title('%ims' % (i*10))
-    #~ plt.savefig(os.path.join(path, 'Step_%i.png' % (1000+i)))
+	  #~ plt.clf()
+	  #~ for j in range(len(data)):
+	  	  #~ if data.code.iloc[j] == 'lure':
+	  	  	  #~ style = 'r.'
+	  	  #~ elif data.code.iloc[j] == 'control':
+	  	  	  #~ style = 'b.'
+	  	  #~ else:
+	  	  	  #~ style = None
+	  	  #~ if style:
+	  	  	  #~ x = data.fx.iloc[j]
+	  	  	  #~ y = data.fy.iloc[j]
+	  	  	  #~ if len(x) > i:
+	  	  	  	  #~ plt.plot(x[i], y[i], style)
+	  	  	  #~ else:
+	  	  	  	  #~ plt.plot(x[-1], y[-1], style)
+	  #~ plt.xlim((-1.2, 1.2))
+	  #~ plt.ylim((-.2, 1.2))
+	  #~ plt.title('%ims' % (i*10))
+	  #~ plt.savefig(os.path.join(path, 'Step_%i.png' % (1000+i)))
 # Then, using imagemagick
 # cd /path/to/save/images/
 # convert -delay 10 -loop 1 *.png Output.gif
