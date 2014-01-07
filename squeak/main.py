@@ -517,6 +517,8 @@ def plot_all(dataset, groupby, condition_a, condition_b, x='x', y='y', legend=Tr
 		elif dataset[groupby].iloc[i] == condition_b:
 			plt.plot(x_path, y_path, 'r')
 
+
+
 # Make a GIF 
 def make_gif(dataset, groupby, condition_a, condition_b, save_to, frames=101, x='x', y='y'):
 	"""Very Experimental!
@@ -568,7 +570,31 @@ def make_gif(dataset, groupby, condition_a, condition_b, save_to, frames=101, x=
 	  plt.ylim((-.2, 1.2))
 	  plt.title('%ims' % (i*10))
 	  plt.savefig(os.path.join(path, 'Step_%i.png' % (1000+i)))
-	  
+
+def angular_deviation(x, y, response_x=1, response_y=1, alt_x=-1, alt_y=1, normalized=False):
+	dx, dy = x.diff(), y.diff()
+	response_dx = response_x - x
+	response_dy = response_y - y
+	alt_dx =alt_x - x
+	alt_dy = alt_y - y
+	actual_angle = np.arctan2(dy, dx)
+	angle_to_response = np.arctan2(response_dy, response_dx)
+	angle_to_alt = np.arctan2(alt_dy, alt_dx)
+	#
+	in_motion = np.nan_to_num(dy).astype('bool')
+	actual_angle *= in_motion
+	angle_to_alt *= in_motion
+	angle_to_response *= in_motion
+	#
+	deviation_angle = (actual_angle - angle_to_response) # Reverse signs
+
+	if normalized: # This doesn't work
+		#~ normal = deviation_angle angle_to_alt angle_to_response
+		#~ return normal
+	else:
+		return deviation_angle
+
+
 # Make a GIF (
 #~ path = '/path/to/save/images/'
 #~ for i in range(301):
