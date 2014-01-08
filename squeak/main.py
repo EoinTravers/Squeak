@@ -28,9 +28,9 @@ def even_time_steps(x, y, t, length = 101):
 		y coordinates intepolated to 101 even time steps
 	"""
 	nt = np.arange(min(t), max(t), (float(max(t)-min(t))/length))
-	nx = interp(nt, t, x)
-	ny = interp(nt, t, y)
-	return pd.TimeSeries(nx, nt), pd.TimeSeries(ny, nt)
+	nx = interp(nt, t, x)[:101] # Sometimes it ends up 102 steps long.
+	ny = interp(nt, t, y)[:101]
+	return pd.TimeSeries(nx, range(len(nx))), pd.TimeSeries(ny, range(len(ny)))
 
 def normalize_space(array, start=0, end=1):
 	"""Interpolates array of 1-d coordinates to given start and end value.
@@ -96,7 +96,7 @@ def uniform_time(coordinates, timepoints, desired_interval=20, max_duration=3000
 	
 	extended_coordinates = np.concatenate([regular_coordinates, extra_values])
 	extended_timepoints = np.arange(0, max_duration+.1, desired_interval)
-	print len(extended_coordinates), len(extended_timepoints)
+	#print len(extended_coordinates), len(extended_timepoints)
 	# Return as a time series
 	return pd.TimeSeries(extended_coordinates, extended_timepoints)
 
@@ -571,28 +571,54 @@ def make_gif(dataset, groupby, condition_a, condition_b, save_to, frames=101, x=
 	  plt.title('%ims' % (i*10))
 	  plt.savefig(os.path.join(path, 'Step_%i.png' % (1000+i)))
 
-def angular_deviation(x, y, response_x=1, response_y=1, alt_x=-1, alt_y=1, normalized=False):
+def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=1, normalized=False):
+	"""
+	Shows how far, in degrees, the path deviated from going straight to the response,
+	at every step along the way.
+	
+	Parameters
+	----------
+	x, y : Pandas Series objects (including TimeSeries)
+		The mouse coordinates
+	response_x, response_y, alt_x, alt_y : int
+		The locations of the responses
+	normalized : Bool
+		Not implemented: Normalize the result, so that straight towards
+		the response returns 0, and straight towards the alternative
+		returns 1.
+	"""
+	# Generate vectors of the actual change in position,
+	# and distance from the chosen and alternative responses,
+	# at each time step.
 	dx, dy = x.diff(), y.diff()
 	response_dx = response_x - x
 	response_dy = response_y - y
-	alt_dx =alt_x - x
+	alt_dx = alt_x - x
 	alt_dy = alt_y - y
+	# Use those vectors to calculate the respective angles.
 	actual_angle = np.arctan2(dy, dx)
 	angle_to_response = np.arctan2(response_dy, response_dx)
 	angle_to_alt = np.arctan2(alt_dy, alt_dx)
-	#
+	# Where cursor was stationary, give angle as 0
 	in_motion = np.nan_to_num(dy).astype('bool')
 	actual_angle *= in_motion
 	angle_to_alt *= in_motion
 	angle_to_response *= in_motion
-	#
-	deviation_angle = (actual_angle - angle_to_response) # Reverse signs
-
+	# Deviation is the difference between the actual angle, and the
+	# angle going straight for the response
+	deviation_angle = (actual_angle - angle_to_response) # Reverse signs?
+	if !t:
+		t = range(101)
 	if normalized: # This doesn't work
-		#~ normal = deviation_angle angle_to_alt angle_to_response
-		#~ return normal
+		raise Exception("normalization isn't implemented yet for angular_deviation")
+		normal = (deviation_angle - angle_to_response) / (angle_to_alt - angle_to_response)
+		return normal
 	else:
-		return deviation_angle
+		return pd.TimeSeries(deviation_angle, t)
+
+def tsplot(MetaSeries):
+	"""Does what must be done to turn a Pandas column of Serieses into something that SeaBorn can deal with"""
+    sns.tsplot(np.array( [np.array(trial) for trial in MetaSeries]))
 
 
 # Make a GIF (
