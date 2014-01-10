@@ -607,7 +607,7 @@ def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=
 	# Deviation is the difference between the actual angle, and the
 	# angle going straight for the response
 	deviation_angle = (actual_angle - angle_to_response) # Reverse signs?
-	if !t:
+	if t == None:
 		t = range(101)
 	if normalized: # This doesn't work
 		raise Exception("normalization isn't implemented yet for angular_deviation")
