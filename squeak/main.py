@@ -618,7 +618,7 @@ def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=
 
 def tsplot(MetaSeries):
 	"""Does what must be done to turn a Pandas column of Serieses into something that SeaBorn can deal with"""
-    sns.tsplot(np.array( [np.array(trial) for trial in MetaSeries]))
+	sns.tsplot(np.array( [np.array(trial) for trial in MetaSeries]))
 
 
 # Make a GIF (
