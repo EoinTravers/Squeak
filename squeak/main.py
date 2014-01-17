@@ -210,8 +210,9 @@ def max_deviation(x, y):
 	"""
 	rx, ry = [], []
 	# Turn the path on its side.
+	radians_to_rotate = math.atan(float(x[len(x)-1])/y[len(y)-1]) # Handling Pandas dataforms
 	for localx, localy in zip(x, y):
-		rot = rotate(localx, localy, math.radians(45))
+		rot = rotate(localx, localy, radians_to_rotate)#math.radians(45))
 		rx.append(rot[0])
 		ry.append(rot[1])
 	max_positive = abs(min(rx))
