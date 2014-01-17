@@ -6,6 +6,7 @@ from scipy import interpolate, interp, stats
 from math import sqrt
 import matplotlib.pyplot as plt
 import math
+import seaborn as sns
 
 # # # Normalizaton
 def even_time_steps(x, y, t, length = 101):
@@ -617,10 +618,48 @@ def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=
 	else:
 		return pd.TimeSeries(deviation_angle, t)
 
+def movement_angle(x, y):
+	try:
+		# TimeSeries
+		dx, dy = x.diff(), y.diff()
+	except AttributeError:
+		# Array
+		dx, dy = np.ediff1d(x), np.ediff1d(y)
+	angle = np.arctan2(dx, dy) # Measuring from the y axis
+	return angle
+
 def tsplot(MetaSeries):
 	"""Does what must be done to turn a Pandas column of Serieses into something that SeaBorn can deal with"""
-	sns.tsplot(np.array( [np.array(trial) for trial in MetaSeries]))
+	x = range(len(MetaSeries.iloc[0]))
+	sns.tsplot(x, np.array( [np.array(trial) for trial in MetaSeries]))
 
+def smooth_gaussian(array ,degree=5):
+	"""
+	Smoothes jagged, oversampled time series data.
+	
+	Parameters
+	----------
+	array : 
+		TimeSeries to smooth
+	degree : int, optional, default=5
+		window over which to smooth
+		
+	Code from http://www.swharden.com/blog/2008-11-17-linear-data-smoothing-in-python/
+	With thanks to  Scott W Harden
+	"""
+	window=degree*2-1  
+	weight=numpy.array([1.0]*window)  
+	weightGauss=[]  
+	for i in range(window):  
+		i=i-degree+1  
+		frac=i/float(window)  
+		gauss=1/(numpy.exp((4*(frac))**2))  
+		weightGauss.append(gauss)  
+	weight=numpy.array(weightGauss)*weight  
+	smoothed=[0.0]*(len(array)-window)  
+	for i in range(len(smoothed)):  
+		smoothed[i]=sum(numpy.array(array[i:i+window])*weight)/sum(weight)  
+	return smoothed  
 
 # Make a GIF (
 #~ path = '/path/to/save/images/'
