@@ -602,21 +602,21 @@ def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=
 	angle_to_response = np.arctan2(response_dy, response_dx)
 	angle_to_alt = np.arctan2(alt_dy, alt_dx)
 	# Where cursor was stationary, give angle as 0
-	in_motion = np.nan_to_num(dy).astype('bool')
-	actual_angle *= in_motion
-	angle_to_alt *= in_motion
-	angle_to_response *= in_motion
+	velocity = np.sqrt(dx**2 + dy**2)
+	actual_angle *= (velocity > .05)
+	angle_to_alt *= (velocity > .05)
+	angle_to_response *= (velocity > .05)
 	# Deviation is the difference between the actual angle, and the
 	# angle going straight for the response
 	deviation_angle = (actual_angle - angle_to_response) # Reverse signs?
 	if t == None:
-		t = range(101)
+		t = range(len(dx))
 	if normalized: # This doesn't work
 		raise Exception("normalization isn't implemented yet for angular_deviation")
 		normal = (deviation_angle - angle_to_response) / (angle_to_alt - angle_to_response)
 		return normal
 	else:
-		return pd.TimeSeries(deviation_angle, t)
+		return deviation_angle
 
 def movement_angle(x, y):
 	try:
@@ -625,8 +625,12 @@ def movement_angle(x, y):
 	except AttributeError:
 		# Array
 		dx, dy = np.ediff1d(x), np.ediff1d(y)
-	angle = np.arctan2(dx, dy) # Measuring from the y axis
-	return angle
+	# Measuring from the y axis
+	angle = np.arctan2(dx, dy)
+	velocity = np.sqrt(dx**2 + dy**2)
+	angle *= (velocity > .05) # Treat steps that move less than this as 0 degrees
+	#return  1.5707963267948966 - angle # 90 degrees minus angle
+	return np.nan_to_num(angle) # Maybe leave in the NAN for better averaging?
 
 def tsplot(MetaSeries):
 	"""Does what must be done to turn a Pandas column of Serieses into something that SeaBorn can deal with"""
@@ -648,18 +652,39 @@ def smooth_gaussian(array ,degree=5):
 	With thanks to  Scott W Harden
 	"""
 	window=degree*2-1  
-	weight=numpy.array([1.0]*window)  
+	weight=np.array([1.0]*window)  
 	weightGauss=[]  
 	for i in range(window):  
 		i=i-degree+1  
 		frac=i/float(window)  
-		gauss=1/(numpy.exp((4*(frac))**2))  
+		gauss=1/(np.exp((4*(frac))**2))  
 		weightGauss.append(gauss)  
-	weight=numpy.array(weightGauss)*weight  
+	weight=np.array(weightGauss)*weight  
 	smoothed=[0.0]*(len(array)-window)  
 	for i in range(len(smoothed)):  
-		smoothed[i]=sum(numpy.array(array[i:i+window])*weight)/sum(weight)  
+		smoothed[i]=sum(np.array(array[i:i+window])*weight)/sum(weight)  
 	return smoothed  
+
+
+# Binning data
+def map_bin(x, bins):
+	kwargs = {}
+	if x == max(bins):
+		kwargs['right'] = True
+	bin = bins[np.digitize([x], bins, **kwargs)[0]]
+	bin_lower = bins[np.digitize([x], bins, **kwargs)[0]-1]
+	return bin_lower
+
+def bin_series(series, bins=None):
+	if bins == None:
+		maximum = series.max()
+		bins = np.arange(0, maximum+.1, maximum/len(series))
+	binned = series.index.map(lambda s: map_bin(s, bins))
+	raw = pd.DataFrame(data=zip(series, binned), index=series.index, columns=['val', 'bin'])
+	grouped = raw.groupby('bin').mean()
+	return pd.TimeSeries(grouped.val, bins)
+
+
 
 # Make a GIF (
 #~ path = '/path/to/save/images/'
