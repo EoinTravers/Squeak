@@ -632,6 +632,23 @@ def movement_angle(x, y):
 	#return  1.5707963267948966 - angle # 90 degrees minus angle
 	return np.nan_to_num(angle) # Maybe leave in the NAN for better averaging?
 
+def movement_angle2(x, y):
+	try:
+		# TimeSeries
+		dx, dy = x.diff(), y.diff()
+	except AttributeError:
+		# Array
+		dx, dy = np.ediff1d(x), np.ediff1d(y)
+	# Measuring from the y axis
+	angle = np.arctan2(dx, dy)
+	velocity = np.sqrt(dx**2 + dy**2)
+	angle *= (velocity > .01) # Treat steps that move less than this as 0 degrees
+	angle.iloc[0] = 0
+	for i in np.arange(1, angle.size):
+		if angle.iloc[i] == 0:
+			angle.iloc[i] = angle.iloc[i-1]
+	return angle # Maybe leave in the NAN for better averaging?
+
 def tsplot(MetaSeries):
 	"""Does what must be done to turn a Pandas column of Serieses into something that SeaBorn can deal with"""
 	x = range(len(MetaSeries.iloc[0]))
