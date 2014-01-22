@@ -38,6 +38,8 @@ def normalize_space(array, start=0, end=1):
 	
 	TODO: Might not work on decreasing arrays. Test this"""
 	old_delta = array[-1] - array[0] # Distance between old start and end values.
+	if old_delta < 0:
+		raise Exception('normalize_space requires the end value of the array to be higher than the start')
 	new_delta = end - start # Distance between new ones.
 	# Convert coordinates to float values
 	array = array.astype('float')
@@ -701,7 +703,36 @@ def bin_series(series, bins=None):
 	grouped = raw.groupby('bin').mean()
 	return pd.TimeSeries(grouped.val, bins)
 
+## Advanced AUC functions
+def auc_even_odd(x, y, resolution=.05):
+	try:
+		start_x, end_x, start_y, end_y = x.iloc[0], x.iloc[-1], y.iloc[0], y.iloc[-1]
+	except:
+		# Not a Pandas Series
+		start_x, end_x, start_y, end_y = x[0], x[-1], y[0], y[-1]
+	points_under_curve = []
+	for px in np.arange(-end_x, end_x+.01, resolution):
+		for py in np.arange(start_y, end_y+.01, resolution):
+			test = even_odd_rule(px, py, x, y)
+			if test:
+				plt.plot(px, py, 'or')
+			points_under_curve.append(test)
+	auc = float(sum(points_under_curve)) / len(points_under_curve)
+	return auc
 
+def even_odd_rule(point_x, point_y, line_x, line_y):
+	# Possibly use a sparse sample of the lines to speed this up?
+	poly = zip(line_x, line_y)
+	num = len(poly)
+	i = 0
+	j = num - 1
+	c = False
+	for i in range(num):
+			if  ((poly[i][1] > point_y) != (poly[j][1] > point_y)) and \
+					(point_x < (poly[j][0] - poly[i][0]) * (point_y - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0]):
+				c = not c
+			j = i
+	return c
 
 # Make a GIF (
 #~ path = '/path/to/save/images/'
