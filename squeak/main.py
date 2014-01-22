@@ -704,24 +704,47 @@ def bin_series(series, bins=None):
 	return pd.TimeSeries(grouped.val, bins)
 
 ## Advanced AUC functions
-def auc_even_odd(x, y, resolution=.05):
-	try:
-		start_x, end_x, start_y, end_y = x.iloc[0], x.iloc[-1], y.iloc[0], y.iloc[-1]
-	except:
-		# Not a Pandas Series
-		start_x, end_x, start_y, end_y = x[0], x[-1], y[0], y[-1]
-	points_under_curve = []
-	for px in np.arange(-end_x, end_x+.01, resolution):
-		for py in np.arange(start_y, end_y+.01, resolution):
-			test = even_odd_rule(px, py, x, y)
-			if test:
-				plt.plot(px, py, 'or')
-			points_under_curve.append(test)
+def auc_even_odd(x, y, resolution=.05, debug=False):
+	# This method can be agonizingly slow, as it goes through every pixel,
+	# and applies the even-odd rule, which itself goes through every 
+	# vector in the trajectory iteratively.
+	# It's been speeded up by
+	# - using a relatively low resolution (.05)
+	#	-> = approx 52x43 = 2236 pixels
+	# - Resampling the trajectory by a factor of 5, so it calculates
+	#	over closer to 20 vectors, rather than 101+
+	# It might be worthwhile trying to implement these graphics functions in C?
+	#~ global tr
+	#~ print tr
+	#~ tr += 1
+	# Use numpy arrays, and measure from curve to x axis
+	x, y = np.array(x), np.array(y)
+	start_x, end_x, start_y, end_y = x[0], x[-1], y[0], y[-1]
+	#~ x = np.append(x, [end_x, start_x]) # Extending to x axis
+	#~ y = np.append(y, [start_y]*2)
+	plt.plot(x, y, '-ob')
+	if debug:
+		# Slower function, but plots a graph
+		points_under_curve = []
+		for px in np.arange(-end_x*1.3, end_x*1.3, resolution):
+			for py in np.arange(start_y-.2, end_y+.3, resolution):
+				test = even_odd_rule(px, py, x, y)
+				if test:
+					plt.plot(px, py, 'or')
+				points_under_curve.append(test)
+	else:
+		points_under_curve = [even_odd_rule(px, py, x, y) \
+		for px in np.arange(-end_x*1.5, end_x*1.5, resolution) \
+			for py in np.arange(start_y-.2, end_y+.3, resolution)]
 	auc = float(sum(points_under_curve)) / len(points_under_curve)
 	return auc
 
-def even_odd_rule(point_x, point_y, line_x, line_y):
+def even_odd_rule(point_x, point_y, line_x, line_y, resample=5):
 	# Possibly use a sparse sample of the lines to speed this up?
+	#~ poly = zip(line_x[::5], line_y[::5])
+	line_x, line_y = line_x[::resample], line_y[::resample]
+	line_x = np.append(line_x, [line_x[-1], line_x[0]]) # Extending to x axis
+	line_y = np.append(line_y, [line_y[0]]*2) # Extending to x axis
 	poly = zip(line_x, line_y)
 	num = len(poly)
 	i = 0
