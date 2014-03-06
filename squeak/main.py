@@ -192,6 +192,29 @@ def get_init_step(y, y_threshold = .01, ascending = True):
 	step = np.argmax(started)
 	return step
 
+def get_deviation(x, y):
+	"""Returns the deviation away from a straight line over the course of a path.
+	
+	Parameters
+	----------
+	x, y : array-like
+		x and y coordinates of the path.
+		
+	Returns
+	----------
+	deviation : np.array
+		Distance between observed and straight line at every step
+	
+	
+	"""
+	path = np.array(zip(x, y)).T
+	# Turn the path on its side.
+	radians_to_rotate = math.atan(float(x[len(x)-1])/y[len(y)-1]) # Handling Pandas dataforms
+	rotMatrix = np.array([[np.cos(radians_to_rotate), -np.sin(radians_to_rotate)], \
+						[np.sin(radians_to_rotate),  np.cos(radians_to_rotate)]])
+	deviation, deviation_y = rotMatrix.dot(path)
+	return -1 * deviation # Reverse the sign
+
 def max_deviation(x, y):
 	"""Caluclate furthest distance between observed path and ideal straight one.
 	
@@ -211,25 +234,20 @@ def max_deviation(x, y):
 	Will return negative values in cases where the greatest distance
 	is to the right (i.e. AWAY from the alternative response).
 	"""
-	rx, ry = [], []
-	# Turn the path on its side.
-	radians_to_rotate = math.atan(float(x[len(x)-1])/y[len(y)-1]) # Handling Pandas dataforms
-	for localx, localy in zip(x, y):
-		rot = rotate(localx, localy, radians_to_rotate)#math.radians(45))
-		rx.append(rot[0])
-		ry.append(rot[1])
-	max_positive = abs(min(rx))
-	max_negative = abs(max(rx))
+	deviation = get_deviation(x, y)
+	max_positive = abs(max(deviation))
+	max_negative = abs(min(deviation))
 	#print max_positive, max_negative
 	if max_positive > max_negative:
 		# The return the positive MD
 		return max_positive
 	else:
 		# Return the negative (rare)
-		return -1*max_negative
+		return max_negative
 
 
-def rotate(x, y, rad): # Needed for max_deviation()
+
+def rotate(x, y, rad): # Redundant
 	"""Rotate counter-clockwise around origin by `rad` radians.
 	"""
 	s, c = [f(rad) for f in (math.sin, math.cos)]
@@ -620,7 +638,9 @@ def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=
 	else:
 		return deviation_angle
 
-def movement_angle(x, y):
+def movement_angle(x, y, step_by=5):
+	original_index = x.index
+	x, y = x[::step_by], y[::step_by]
 	try:
 		# TimeSeries
 		dx, dy = x.diff(), y.diff()
@@ -632,8 +652,11 @@ def movement_angle(x, y):
 	velocity = np.sqrt(dx**2 + dy**2)
 	angle *= (velocity > .05) # Treat steps that move less than this as 0 degrees
 	#return  1.5707963267948966 - angle # 90 degrees minus angle
-	return np.nan_to_num(angle) # Maybe leave in the NAN for better averaging?
+	angle = np.nan_to_num(angle) # Maybe leave in the NAN for better averaging?
+	# Recreate with the original index
+	return angle.reindex(index=original_index).interpolate()
 
+	
 def movement_angle2(x, y):
 	try:
 		# TimeSeries
@@ -650,6 +673,20 @@ def movement_angle2(x, y):
 		if angle.iloc[i] == 0:
 			angle.iloc[i] = angle.iloc[i-1]
 	return angle # Maybe leave in the NAN for better averaging?
+
+def get_xflips(path):
+	if type(path) != np.ndarray:
+		path = np.array(path)
+	new_path = path[::5]
+	flips = 0
+	for i in range(len(new_path)-1):
+		this, next_point = new_path[i], new_path[i+1]
+		if np.sign(this) != np.sign(next_point):
+			#print '
+			flips += 1
+	return flips
+		  
+
 
 def tsplot(MetaSeries):
 	"""Does what must be done to turn a Pandas column of Serieses into something that SeaBorn can deal with"""
@@ -782,3 +819,37 @@ def even_odd_rule(point_x, point_y, line_x, line_y, resample=5):
 # Then, using imagemagick
 # cd /path/to/save/images/
 # convert -delay 10 -loop 1 *.png Output.gif
+
+#### From http://wiki.scipy.org/Cookbook/SignalSmooth
+def smooth(x,window_len=11,window='hanning'):
+    """smooth the data using a window with requested size.
+    
+    http://wiki.scipy.org/Cookbook/SignalSmooth
+   """
+
+    if x.ndim != 1:
+        raise ValueError, "smooth only accepts 1 dimension arrays."
+    if x.size < window_len:
+        raise ValueError, "Input vector needs to be bigger than window size."
+    if window_len<3:
+        return x
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+    s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+    #print(len(s))
+    if window == 'flat': #moving average
+        w=np.ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+    y=np.convolve(w/w.sum(),s,mode='valid')
+    return y
+    
+def smooth_timeseries(series, window_len=11, window='hanning'):
+	original_index = series.index
+	smoothed = smooth(series, window_len, window)
+	# Return to original length via interpolation
+	interpolated = np.interp(np.linspace(0, len(smoothed), len(original_index)),\
+		range(len(smoothed)), smoothed)
+	return pd.TimeSeries(interpolated, original_index)
+
+	
