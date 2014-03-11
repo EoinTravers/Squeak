@@ -243,7 +243,7 @@ def max_deviation(x, y):
 		return max_positive
 	else:
 		# Return the negative (rare)
-		return max_negative
+		return -1*max_negative
 
 
 
@@ -674,6 +674,7 @@ def movement_angle2(x, y):
 			angle.iloc[i] = angle.iloc[i-1]
 	return angle # Maybe leave in the NAN for better averaging?
 
+
 def get_xflips(path):
 	if type(path) != np.ndarray:
 		path = np.array(path)
@@ -686,6 +687,24 @@ def get_xflips(path):
 			flips += 1
 	return flips
 		  
+
+def relative_attraction(trial, xvar='nx', yvar='ny'):
+	x, y = trial[xvar], trial[yvar]
+	try:
+		end_x, end_y = x[-1], y[-1]
+	except KeyError:
+		end_x, end_y = x.iloc[-1], y.iloc[-1]
+	#~ print end_x, end_y
+	alt_end_x, alt_end_y = end_x*-1, end_y
+	response_x_dist = end_x - x
+	alt_x_dist = alt_end_x - x
+	common_y_dist = end_y - y
+	response_dist = -np.sqrt(response_x_dist**2 + common_y_dist**2)
+	alt_dist = np.sqrt(alt_x_dist**2 + common_y_dist**2)
+	response_attraction = (-1*response_dist).diff()
+	alt_attraction = (-1*alt_dist).diff()
+	return response_attraction + alt_attraction # Add, because alt is negative
+
 
 
 def tsplot(MetaSeries):
