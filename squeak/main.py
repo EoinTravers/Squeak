@@ -872,3 +872,5 @@ def smooth_timeseries(series, window_len=11, window='hanning'):
 	return pd.TimeSeries(interpolated, original_index)
 
 	
+def jitter(array, scale=.1):
+    return array + np.random.normal(scale=scale*np.std(array), size=len(array))
