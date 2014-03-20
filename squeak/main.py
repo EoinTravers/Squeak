@@ -656,7 +656,17 @@ def movement_angle(x, y, step_by=5):
 	# Recreate with the original index
 	return angle.reindex(index=original_index).interpolate()
 
-	
+def simple_angle(x1, y1, x2, y2):
+	dx = x2 - x1
+	dy = y2 - y1
+	return np.arctan2(dx, dy)
+
+def angle_to_point(x, y, point_x=1, point_y=1.5):
+    dx = point_x - x
+    dy = point_y - y
+    angle = np.arctan2(dx, dy)
+    return angle
+
 def movement_angle2(x, y):
 	try:
 		# TimeSeries
