@@ -887,3 +887,20 @@ def smooth_timeseries(series, window_len=11, window='hanning'):
 	
 def jitter(array, scale=.1):
     return array + np.random.normal(scale=scale*np.std(array), size=len(array))
+
+# Dale's (2011) functions
+# Not completely satisfied with these yet (21/7/14)
+def acceleration_components(velocity):
+	if isinstance(velocity, pd.Series):
+		velocity = velocity.values
+	acc = np.ediff1d(velocity)
+	components = [np.sign(acc[t]) != np.sign(acc[t+1]) for t in range(len(acc)-1)]
+	return sum(components)
+
+def x_flips(x):
+	if isinstance(x, pd.Series):
+		x = x.values
+	dx = np.ediff1d(x)
+	flips = [np.sign(dx[t]) != np.sign(dx[t+1]) for t in range(len(dx)-1)]
+	#~ plt.plot(dx, 'r-o', np.array([0]+flips), 'b')
+	return sum(flips)
