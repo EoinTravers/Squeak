@@ -327,6 +327,9 @@ def pythag(o, a):
 
 def velocity(x, y):
 	"""Returns array of velocity at each time step"""
+	if isinstance(x, pd.Series):
+		x = x.values
+		y = y.values
 	vx = np.ediff1d(x)
 	vy = np.ediff1d(y)
 	vel = np.sqrt( vx**2 + vy **2 ) # Pythagoras
