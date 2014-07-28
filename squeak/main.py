@@ -894,13 +894,24 @@ def acceleration_components(velocity):
 	if isinstance(velocity, pd.Series):
 		velocity = velocity.values
 	acc = np.ediff1d(velocity)
-	components = [np.sign(acc[t]) != np.sign(acc[t+1]) for t in range(len(acc)-1)]
-	return sum(components)
-
+	#~ components = [np.sign(acc[t]) != np.sign(acc[t+1]) for t in range(len(acc)-1)]
+	c = acc[:-1] * acc[1:]
+	components = c < -.000001 # Anything smaller counts as not moving at all.
+	#~ components = np.concatenate([[False], components]) # Make length match velocity length
+	return np.array(components)
+	#~ return sum(components)# There will always be 2 flips, corresponding to the
+	# start and end of the movement
+	
 def x_flips(x):
 	if isinstance(x, pd.Series):
 		x = x.values
 	dx = np.ediff1d(x)
-	flips = [np.sign(dx[t]) != np.sign(dx[t+1]) for t in range(len(dx)-1)]
+	#~ flips = [np.sign(dx[t]) != np.sign(dx[t+1]) for t in range(len(dx)-1)]
+	changes = dx[:-1] * dx[1:]
+	flips = changes < -.00001 # Anything smaller counts as not moving at all.
+	#~ flips = np.concatenate([[False], flips]) # Make length match velocity length
+
 	#~ plt.plot(dx, 'r-o', np.array([0]+flips), 'b')
-	return sum(flips)
+	return np.array(flips)
+	#~ return sum(flips) - 2 # There will always be 2 flips, corresponding to the
+	# start and end of the movement
