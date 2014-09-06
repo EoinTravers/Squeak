@@ -147,6 +147,9 @@ def rel_distance(x_path, y_path, full_output = False):
 
 def get_init_time(t, y, y_threshold=.01, ascending = True):
 	"""Returns time  from t of point where y exceeds y_threshold.
+	 TODO - Replace this with faster code using generators
+	init_time = next(time for (time, location) in zip(tList, yList) if location < (h-30)) # More than 30 pixels from bottom
+
 	
 	Parameters
 	----------
@@ -234,6 +237,7 @@ def max_deviation(x, y):
 	Will return negative values in cases where the greatest distance
 	is to the right (i.e. AWAY from the alternative response).
 	"""
+	# Rotate line to vertical, and get x axis
 	deviation = get_deviation(x, y)
 	max_positive = abs(max(deviation))
 	max_negative = abs(min(deviation))
@@ -373,6 +377,7 @@ def chisquare_boolean(array1, array2):
 	return chisq, p
 
 # # # Functions to apply to a set of trajectories at a time # # #
+# These are depreciated. Move to submodule.
 # # Most of this is best done using Pandas' built in methods.
 def average_path(x, y, full_output=False):#, length=101):
 	"""Averages Pandas data columns of x and y trajectories into a single mean xy path.
