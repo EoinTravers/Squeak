@@ -567,7 +567,7 @@ def bimodality_coef(samp):
 	#~ plt.title(y)
 	#~ return None
 
-def plot_means_2d(dataset, groupby, condition_a, condition_b, x='x', y='y', legend=True, title=None):
+#~ def plot_means_2d(dataset, groupby, condition_a, condition_b, x='x', y='y', legend=True, title=None):
 	#~ """Depreciated: Convenience function for plotting average 2D mouse paths
 	#~ 
 	#~ Parameters
@@ -759,10 +759,10 @@ def movement_angle(x, y, step_by=5):
 	#~ return np.arctan2(dx, dy)
 #~ 
 #~ def angle_to_point(x, y, point_x=1, point_y=1.5):
-    #~ dx = point_x - x
-    #~ dy = point_y - y
-    #~ angle = np.arctan2(dx, dy)
-    #~ return angle
+	#~ dx = point_x - x
+	#~ dy = point_y - y
+	#~ angle = np.arctan2(dx, dy)
+	#~ return angle
 #~ 
 #~ def movement_angle2(x, y):
 	#~ try:
@@ -896,28 +896,28 @@ def smooth_gaussian(array ,degree=5):
 
 #### From http://wiki.scipy.org/Cookbook/SignalSmooth
 def smooth(x,window_len=11,window='hanning'):
-    """smooth the data using a window with requested size.
-    
-    http://wiki.scipy.org/Cookbook/SignalSmooth
+	"""smooth the data using a window with requested size.
+	
+	http://wiki.scipy.org/Cookbook/SignalSmooth
    """
 
-    if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
-    if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
-    if window_len<3:
-        return x
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
-    s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
-        w=np.ones(window_len,'d')
-    else:
-        w=eval('np.'+window+'(window_len)')
-    y=np.convolve(w/w.sum(),s,mode='valid')
-    return y
-    
+	if x.ndim != 1:
+		raise ValueError, "smooth only accepts 1 dimension arrays."
+	if x.size < window_len:
+		raise ValueError, "Input vector needs to be bigger than window size."
+	if window_len<3:
+		return x
+	if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+		raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+	s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+	#print(len(s))
+	if window == 'flat': #moving average
+		w=np.ones(window_len,'d')
+	else:
+		w=eval('np.'+window+'(window_len)')
+	y=np.convolve(w/w.sum(),s,mode='valid')
+	return y
+	
 def smooth_timeseries(series, window_len=11, window='hanning'):
 	original_index = series.index
 	smoothed = smooth(series, window_len, window)
@@ -928,7 +928,7 @@ def smooth_timeseries(series, window_len=11, window='hanning'):
 
 	
 def jitter(array, scale=.1):
-    return array + np.random.normal(scale=scale*np.std(array), size=len(array))
+	return array + np.random.normal(scale=scale*np.std(array), size=len(array))
 
 # Dale's (2011) functions
 # Not completely satisfied with these yet (21/7/14)
