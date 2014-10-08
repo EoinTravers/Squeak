@@ -915,3 +915,29 @@ def x_flips(x):
 	return np.array(flips)
 	#~ return sum(flips) - 2 # There will always be 2 flips, corresponding to the
 	# start and end of the movement
+
+# Analyting as eye data
+def ballistic_direction(x):
+	#~ if isinstance(x, pd.Series):
+		#~ x = x.values
+	#~ direction = np.sign(np.ediff1d(x))
+	dx = x.diff()
+	side_of_screen = np.sign(x)
+	direction = np.sign(dx)
+	direction.iloc[0] = 0
+	sizable = dx.abs() > .01 # Disregard movements smaller than this
+	direction *= sizable
+	# If the mouse was in motion, and then stops agin,
+	# report the direction it was moving in before it stopped.
+	# Doing this in a loop means that time spend hovering over a response
+	# is coded as moving towards it, rather than not moving at all.
+	#~ for i in range(1, len(direction)):
+		#~ if direction.iloc[i] == 0 and direction.iloc[i-1] != 0:
+			#~ direction.iloc[i] = direction.iloc[i-1]
+	# Alternative - Replace late 0 values of direction with side of screen
+	for i in range(1, len(direction)):
+		if direction.iloc[i] == 0 and direction.iloc[i-1] != 0:
+			direction.iloc[i] = side_of_screen[i-1]
+	return direction
+
+	
