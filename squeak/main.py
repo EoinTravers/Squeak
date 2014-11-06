@@ -241,12 +241,12 @@ def get_init_step(y, y_threshold = .01, ascending = True):
 	step = np.argmax(started)
 	return step
 
-#~ def rotate(x, y, rad): # Redundant
-	#~ """Rotate counter-clockwise around origin by `rad` radians.
-	#~ """
-	#~ s, c = [f(rad) for f in (math.sin, math.cos)]
-	#~ x, y = (c*x - s*y, s*x + c*y)
-	#~ return x,y
+def rotate(x, y, rad): # Redundant
+	"""Rotate counter-clockwise around origin by `rad` radians.
+	"""
+	s, c = [f(rad) for f in (math.sin, math.cos)]
+	x, y = (c*x - s*y, s*x + c*y)
+	return x,y
 
 def get_deviation(x, y):
 	"""Returns the deviation away from a straight line over the course of a path.
