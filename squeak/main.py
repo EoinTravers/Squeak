@@ -958,6 +958,42 @@ def x_flips(x):
 	#~ return sum(flips) - 2 # There will always be 2 flips, corresponding to the
 	# start and end of the movement
 
+def sample_entropy(ts, edim = 2, r = .2 * np.std(ts), tau = 1):
+        #  Ported from R function pracma::sample_entropy
+        # http://cran.r-project.org/web/packages/pracma/index.html
+        """
+        ts - a time series.
+        edim - the embedding dimension, as for chaotic time series; a preferred value is 2.
+        r - filter factor; work on heart rate variability has suggested setting r to be 0.2
+            times the standard deviation of the data.
+        elag - embedding lag; defaults to 1, more appropriately it
+            should be set to the smallest lag at which the autocorrelation
+            function of the time series is close to zero. (At the moment
+            it cannot be changed by the user.)
+        tau - delay time for subsampling, similar to elag.
+        """
+        N = len(ts)
+        # edim is the window size, so we're going to make a matrix of
+        # contiguous values at the larger (edim+1) window size.
+        correl = []
+        datamat = np.zeros((edim+1, N-edim-1)) # 3x98
+        for i in range(1, (edim+1)+1): # 1 to the larger window size
+                datamat[i-1] =  ts[i-1:N-edim+i-2] #ts[i-1:N-edim+i+1]
+        for m in [edim, edim+1]:
+                # For window size edim, and edim+1
+                count = np.zeros((1, N-edim-1))
+                tempmat = datamat[:m,] # Windows of current size
+                for i in range(N-m-1): # For every window...
+                        a = tempmat[..., i:N-edim-1]
+                        b = np.transpose([tempmat[..., i-1]]*(N-edim-i-1))
+                        X = np.abs(a-b)
+                        dst = np.max(X, axis=0)
+                        d = dst < r
+                        count[...,i] = float(sum(d)) / (N - edim)
+                correl.append( sum(count) / (N - edim) )
+        return np.log(correl[0] / correl[1])
+
+
 # Analyting as eye data
 def ballistic_direction(x):
 	#~ if isinstance(x, pd.Series):
