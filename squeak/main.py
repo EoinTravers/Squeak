@@ -958,6 +958,9 @@ def x_flips(x):
 	#~ return sum(flips) - 2 # There will always be 2 flips, corresponding to the
 	# start and end of the movement
 
+def count_x_flips(x):
+    return sum(x_flips(x))
+
 def sample_entropy(ts, edim = 2, tau = 1):
         #  Ported from R function pracma::sample_entropy
         # http://cran.r-project.org/web/packages/pracma/index.html
