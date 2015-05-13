@@ -62,7 +62,7 @@ def normalize_space(array, start=0, end=1, preserve_direction=False):
 		if type(array) == list:
 			array = np.array(array)
 		else:
-			raise TypeError("You've used an input of type %s.\nPlease input either a Numpy array or a list.\nThe value you used was:\n%s" % (type(array), repr(array)))
+			raise (TypeError("You've used an input of type %s.\nPlease input either a Numpy array or a list.\nThe value you used was:\n%s" % (type(array), repr(array))))
 	reverse_when_done = False
 	# 'Delta' denotes distance between start and end values
 	old_delta = array[-1] - array[0]
@@ -85,9 +85,9 @@ def normalize_space(array, start=0, end=1, preserve_direction=False):
 	# In future, I should probably test the range of the data, and
 	# interpolate based on that.
 	if max(array) > array[-1] + 2*old_delta or min(array) < array[0] - 2*old_delta:
-		raise ValueError("Input included values way outside of the range\
+		raise (ValueError("Input included values way outside of the range\
 		of your data, given the start and end coordinates.\n\
-		This shouldn't happen.")
+		This shouldn't happen."))
 	old_range = np.array([array[0] - 2*old_delta, array[-1]+2*old_delta])
 	new_range = np.array([start - 2*new_delta, end + 2*new_delta])
 	#if max(array) > old_range[-1]:
@@ -265,7 +265,7 @@ def get_deviation(x, y):
 	
 	
 	"""
-	path = np.array(zip(x, y)).T
+	path = np.array(list(zip(x, y))).T
 	# Turn the path on its side.
 	radians_to_rotate = math.atan(float(x[len(x)-1])/y[len(y)-1]) # Handling Pandas dataforms
 	rotMatrix = np.array([[np.cos(radians_to_rotate), -np.sin(radians_to_rotate)], \
@@ -342,8 +342,8 @@ def auc(x, y, method='polygon'):
 	elif method == 'even-odd':
 		return even_odd_auc(x, y)
 	else:
-		raise ValueError("AUC method must be either 'polygon' or 'even-odd'.\n\
-		You entered '%s'" % method)
+		raise (ValueError("AUC method must be either 'polygon' or 'even-odd'.\n\
+		You entered '%s'" % method))
 	
 def polygon_auc(x, y):
 	areas = []
@@ -729,7 +729,7 @@ def angular_deviation(x, y, t=None, response_x=1, response_y=1, alt_x=-1, alt_y=
 	if t == None:
 		t = range(len(dx))
 	if normalized: # This doesn't work
-		raise Exception("normalization isn't implemented yet for angular_deviation")
+		raise (Exception("normalization isn't implemented yet for angular_deviation"))
 		normal = (deviation_angle - angle_to_response) / (angle_to_alt - angle_to_response)
 		return normal
 	else:
@@ -801,7 +801,7 @@ def movement_angle(x, y, step_by=5):
 		#~ end_x, end_y = x[-1], y[-1]
 	#~ except KeyError:
 		#~ end_x, end_y = x.iloc[-1], y.iloc[-1]
-	print end_x, end_y
+	print(end_x, end_y)
 	#~ alt_end_x, alt_end_y = end_x*-1, end_y
 	#~ response_x_dist = end_x - x
 	#~ alt_x_dist = alt_end_x - x
@@ -902,13 +902,13 @@ def smooth(x,window_len=11,window='hanning'):
    """
 
 	if x.ndim != 1:
-		raise ValueError, "smooth only accepts 1 dimension arrays."
+		raise (ValueError, "smooth only accepts 1 dimension arrays.")
 	if x.size < window_len:
-		raise ValueError, "Input vector needs to be bigger than window size."
+		raise (ValueError, "Input vector needs to be bigger than window size.")
 	if window_len<3:
 		return x
 	if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-		raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+		raise (ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 	s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
 	#print(len(s))
 	if window == 'flat': #moving average
@@ -962,19 +962,19 @@ def count_x_flips(x):
     return sum(x_flips(x))
 
 def sample_entropy(ts, edim = 2, tau = 1):
-        #  Ported from R function pracma::sample_entropy
-        # http://cran.r-project.org/web/packages/pracma/index.html
-        """
-        ts - a time series.
-        edim - the embedding dimension, as for chaotic time series; a preferred value is 2.
-        r - filter factor; work on heart rate variability has suggested setting r to be 0.2
-            times the standard deviation of the data.
-        elag - embedding lag; defaults to 1, more appropriately it
-            should be set to the smallest lag at which the autocorrelation
-            function of the time series is close to zero. (At the moment
-            it cannot be changed by the user.)
-        tau - delay time for subsampling, similar to elag.
-        """
+	#  Ported from R function pracma::sample_entropy
+	# http://cran.r-project.org/web/packages/pracma/index.html
+	"""
+	ts - a time series.
+	edim - the embedding dimension, as for chaotic time series; a preferred value is 2.
+	r - filter factor; work on heart rate variability has suggested setting r to be 0.2
+	times the standard deviation of the data.
+	elag - embedding lag; defaults to 1, more appropriately it
+	should be set to the smallest lag at which the autocorrelation
+	function of the time series is close to zero. (At the moment
+	it cannot be changed by the user.)
+	tau - delay time for subsampling, similar to elag.
+	"""
 	r = .2 * np.std(ts, ddof=1) # ddof defaults to `0`, which gives different results than R
 	N = len(ts)
 	# edim is the window size, so we're going to make a matrix of
