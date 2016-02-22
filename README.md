@@ -10,3 +10,13 @@ It's very much a work in progress, and at the time of writing consists of two br
 - [dev](https://github.com/EoinTravers/Squeak/tree/dev), which contains much more recent code, but may not be 100% reliable.
 
 As the code is still undergoing major changes as I collect and analyse more data for my PhD, this package is for tinkerers and those generally interested in the underlying code, rather than anyone looking for a polished, ready-to-use solution (for which I recomend [MouseTracker](http://www.dartmouth.edu/~freemanlab/mousetracker/).
+
+## Installation
+
+Squeak is available from [PyPI](https://pypi.python.org/pypi/Squeak/0.2.0):
+
+    pip install squeak
+
+To instal the latest version (usually not necessary, development of this library is slow):
+
+    pip install git+git@github.com:EoinTravers/Squeak.git
