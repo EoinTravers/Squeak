@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='Squeak',
-    version='0.1.0',
+    version='0.2.1',
     url='https://github.com/EoinTravers/Squeak',
     author='Eoin Travers',
     author_email='etravers01@qub.ac.uk',
