@@ -11,12 +11,16 @@ import warnings
 ###########################
 # Normalization functions #
 ###########################
-def even_time_steps(x, y, t, length = 101):
-	"""Interpolates x/y coordinates and t to 101 even time steps, returns x and y TimeSeries
+def even_time_steps(x, t, length = 101):
+	"""Interpolates x/y coordinates and t to 101 even time steps, returns x and y TimeSeries.
+
+    NOTE: The previous version of this function accepted x, y, and t
+    as inputs and returns nx and ny.  The new version only handles on
+    set of co-ordinates at a time.
 	
 	Parameters
 	----------
-	x, y : array-like
+	x : array-like
 		Coordinates to be interpolated
 	t : array-like
 		Associated time stamps
@@ -27,15 +31,12 @@ def even_time_steps(x, y, t, length = 101):
 	---------
 	TimeSeries(nx, nt) : Pandas.TimeSeries object
 		x coordinates intepolated to 101 even time steps
-	TimeSeries(ny, nt) : Pandas.TimeSeries object
-		y coordinates intepolated to 101 even time steps
-	"""
+    """
 	nt = np.arange(min(t), max(t), (float(max(t)-min(t))/length))
-	nx = interp(nt, t, x)[:101] # Sometimes it ends up 102 steps long.
-	ny = interp(nt, t, y)[:101]
-	return pd.TimeSeries(nx, range(len(nx))), pd.TimeSeries(ny, range(len(ny)))
+	nx = interp(nt, t, x)[:length] # Sometimes it ends up 1 step too long
+	return pd.Series(nx, range(length))
 
-def normalize_space(array, start=0, end=1, preserve_direction=False):
+def normalize_space(array, end=1):
 	"""Interpolates array of 1-d coordinates to given start and end value.
 	 
 	Parameters
@@ -55,49 +56,19 @@ def normalize_space(array, start=0, end=1, preserve_direction=False):
 		in the output. If start=0, and end=1, increasing coordinates will output [0, ..., 1],
 		while decreasing coordinates will output [0, ..., -1].
 		If False, all output will run [0, ..., 1].
-	
-	TODO: Might not work on decreasing arrays. Test this"""
-	# Convert data to numpy array if it's a regular list
+    """
 	if type(array) != np.ndarray:
 		if type(array) == list:
 			array = np.array(array)
 		else:
 			raise TypeError("You've used an input of type %s.\nPlease input either a Numpy array or a list.\nThe value you used was:\n%s" % (type(array), repr(array)))
-	reverse_when_done = False
-	# 'Delta' denotes distance between start and end values
-	old_delta = array[-1] - array[0]
-	# Check if decreasing 
-	if old_delta < 0:
-		array = array * -1
-		old_delta = array[-1] - array[0]
-		if preserve_direction:
-			reverse_when_done = True
-	new_delta = end - start
-	# Convert coordinates to float values
-	array = array.astype('float')
-	# Finally, interpolate. We interpolate from (start - 2*delta) to (end + 2*delta)
-	# to handle cases where values go below the start, or above the end values.
-	
-	# Note that in rare cases where the coordinates manage to go outside of
-	# this range on either side, this might cause problems.
-	# For now, I'm going to catch this as an error, because I
-	# don't know how wide I need the function to be.
-	# In future, I should probably test the range of the data, and
-	# interpolate based on that.
-	if max(array) > array[-1] + 2*old_delta or min(array) < array[0] - 2*old_delta:
-		raise ValueError("Input included values way outside of the range\
-		of your data, given the start and end coordinates.\n\
-		This shouldn't happen.")
-	old_range = np.array([array[0] - 2*old_delta, array[-1]+2*old_delta])
-	new_range = np.array([start - 2*new_delta, end + 2*new_delta])
-	#if max(array) > old_range[-1]:
-		#print 'Array: %s , old_range: %s' % (array, old_range)
-	normal = np.interp(array, old_range, new_range)
-	if reverse_when_done:
-		return normal * -1
-	else:
-		return normal
-	
+    centered = array - array[0]
+    if len(set(centered)) == 1:
+        # There is only one value!
+        return centered
+    scaled = (centered / centered[-1]) * end
+    return scaled
+
 def remap_right(array):
 	"""Flips decreasing coordinates horizontally on their origin
 	
@@ -113,12 +84,10 @@ def remap_right(array):
 		array of coordinates to remap
 	"""
 	array = np.array(array)
-	if array[-1] - array[0] < 0:
-		array_start = array[0]
-		return ((array-array_start)*-1)+array_start
-	else:
-		return array
+    return x / np.sign(x[-1])
 
+
+    
 def uniform_time(coordinates, timepoints, desired_interval=20, max_duration=3000):
 	"""Extend coordinates to desired duration by repeating the final value
 	
